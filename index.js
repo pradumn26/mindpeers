@@ -21,6 +21,7 @@ mongoUtil.connectToDb()
     require('./routes/authRoutes')(app);
     require('./routes/userRoutes')(app);
     require('./routes/doctorsRoutes')(app);
+    require('./routes/commonRoutes')(app);
 
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, function () {

@@ -81,6 +81,7 @@ module.exports = (app) => {
 
         let db = mongoUtil.getDb();
         let appointmentsCollection = db.collection('appointments');
+        let notificationsCollection = db.collection('notifications');
 
         appointmentsCollection.insert(appointment)
             .then(function (result) {
@@ -90,8 +91,47 @@ module.exports = (app) => {
                 else {
                     res.send({success: true});
 
-                    //TODO send notification to doctor
+                    let notifications = [
+                        {
+                            text: `Your appointment scheduled for ${moment().format('DD/MM/YYYY')} ${req.body.start_time}. Please check appointments to track your appointment.`,
+                            user_id: ObjectId(req.user._id),
+                            tstamp: new Date(),
+                            url: '/myAppointments'
+                        },
+
+                        {
+                            text: `You have appointment request from ${req.user.name} at ${req.body.start_time}.`,
+                            user_id: ObjectId(req.body.doctor_id),
+                            tstamp: new Date(),
+                            url: '/todaysAppointments'
+                        }
+                    ];
+
+                    notificationsCollection.insertMany(notifications);
                 }
             })
     });
+
+    app.get('/fetchAppointments', (req, res) => {
+        if (!req.user)
+            return res.send("Not authorised");
+
+        let db = mongoUtil.getDb();
+        let appointmentsCollection = db.collection('appointments');
+
+        appointmentsCollection.aggregate([
+            {$match: {user_id: ObjectId(req.user._id)}},
+            {$sort: {bookingTime: -1}},
+            {$lookup: {from: 'doctors', localField: 'doctor_id', foreignField: '_id', as: 'doctor'}},
+            {$unwind: '$doctor'},
+            {$addFields: {doctor_name: '$doctor.name'}},
+            {$project: {doctor: 0}}
+        ]).toArray()
+            .then(function (appointments) {
+                res.send(appointments);
+            })
+            .catch(function (err) {
+                res.send(err);
+            })
+    })
 };
