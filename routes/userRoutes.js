@@ -50,7 +50,7 @@ module.exports = (app) => {
                 constants.TIME_SLOTS.map(function (v) {
                     let x = {startTime: v.startTime, endTime: v.endTime};
                     console.log(map[v.startTime]);
-                    if (map[v.startTime] !== undefined || moment(v.startTime, 'HH:mm') < moment(moment().format('HH:mm'), 'HH:mm'))
+                    if (map[v.startTime] !== undefined || moment(v.startTime, 'HH:mm') < moment(moment().add(330, 'minutes').format('HH:mm'), 'HH:mm'))
                         x.enable = false;
                     else
                         x.enable = true;
