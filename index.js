@@ -23,6 +23,15 @@ mongoUtil.connectToDb()
     require('./routes/doctorsRoutes')(app);
     require('./routes/commonRoutes')(app);
 
+    if (process.env.NODE_ENV == 'production') {
+        app.use(express.static('static/build'));
+        const path = require('path');
+        app.get('*', (req, res) => {
+            res.sendFile(path.resolve(__dirname, 'static', 'build', 'index.html'));
+        })
+    }
+
+
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, function () {
         console.log(`App has started on port ${PORT}`);
